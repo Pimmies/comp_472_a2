@@ -77,6 +77,7 @@ neg_training = True
 training_pos_amount = 0
 training_neg_amount = 0
 for episode in csv_rows:
+<<<<<<< Updated upstream
     response = get(episode[
                        2] + '?spoiler=hide&sort=helpfulnessScore&dir=desc&ratingFilter=0')  # get the episode review link and filter out the spoilers
     html_soup = BeautifulSoup(response.text, 'html.parser')  # creates beautifulsoup object from URL
@@ -90,7 +91,6 @@ for episode in csv_rows:
                     f = open("./training_set/training_negative.txt", "a", encoding='utf-8')
                 else:
                     f = open("./testing_set/testing_negative.txt", "a", encoding='utf-8')
-                f.write(review.a.text)  # review title
                 f.write(review.find('div', class_="text show-more__control").text + "\n")  # review text
                 f.write('/\n')
                 f.close()
