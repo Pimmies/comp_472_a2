@@ -91,6 +91,7 @@ for episode in csv_rows:
                     f = open("./training_set/training_negative.txt", "a", encoding='utf-8')
                 else:
                     f = open("./testing_set/testing_negative.txt", "a", encoding='utf-8')
+                    f.write(review.a.text)  # review title
                 f.write(review.find('div', class_="text show-more__control").text + "\n")  # review text
                 f.write('/\n')
                 f.close()
@@ -101,7 +102,7 @@ for episode in csv_rows:
                     f = open("./training_set/training_positive.txt", "a", encoding='utf-8')
                 else:
                     f = open("./testing_set/testing_positive.txt", "a", encoding='utf-8')
-                f.write(review.a.text)  # review title
+                    f.write(review.a.text)  # review title
                 f.write(review.find('div', class_="text show-more__control").text + "\n")
                 f.write('/\n')
                 f.close()
