@@ -77,7 +77,6 @@ neg_training = True
 training_pos_amount = 0
 training_neg_amount = 0
 for episode in csv_rows:
-<<<<<<< Updated upstream
     response = get(episode[
                        2] + '?spoiler=hide&sort=helpfulnessScore&dir=desc&ratingFilter=0')  # get the episode review link and filter out the spoilers
     html_soup = BeautifulSoup(response.text, 'html.parser')  # creates beautifulsoup object from URL
