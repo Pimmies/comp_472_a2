@@ -95,3 +95,8 @@ for episode in csv_rows:
 
 print("Amount of positive reviews in the training set is: ", training_pos_number)
 print("Amount of negative reviews in the training set is: ", training_neg_number)
+
+
+#################################################################################################
+#1.2 Extract the data and build the model
+#tokenize the trainig set, cleanup and calculate probabilities
