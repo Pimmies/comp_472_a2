@@ -2,8 +2,11 @@
 # Created by https://www.toptal.com/developers/gitignore/api/python,pycharm,windows,macos,sublimetext
 # Edit at https://www.toptal.com/developers/gitignore?templates=python,pycharm,windows,macos,sublimetext
 
-### program's generated files###
+### program's generated files and directories###
 *.csv
+*.txt
+training_set/
+testing_set/
 
 ### macOS ###
 # General
