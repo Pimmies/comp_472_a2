@@ -49,6 +49,7 @@ with open(csv_fileName, 'w') as csvfile:
 #a testing set with positive and negative reviews
 #not yet tokenized
 
+#creates directories
 training_path = "./training_set"
 testing_path = "./testing_set"
 try:
@@ -59,6 +60,7 @@ except OSError:
 else:
     print ("Successfully created the directory")
 
+#removes existing files
 training_files = os.listdir(training_path)
 for item in training_files:
     if item.endswith(".txt"):
@@ -70,8 +72,8 @@ for item in testing_files:
 
 pos_training = True
 neg_training = True
-training_pos_number = 0
-training_neg_number = 0
+training_pos_amount = 0
+training_neg_amount = 0
 for episode in csv_rows:
 	response = get(episode[2] + '?spoiler=hide&sort=helpfulnessScore&dir=desc&ratingFilter=0')  #get the episode review link and filter out the spoilers
 	html_soup = BeautifulSoup(response.text, 'html.parser') #creates beautifulsoup object from URL
@@ -79,8 +81,8 @@ for episode in csv_rows:
 	for review in review_container:
 		if(review.span.span is not None): #only taking reviews that have a number rating
 			if(int(review.span.span.text) < 8): #negative review
-				if(neg_training):
-					training_neg_number += 1 
+				if(neg_training): #alternates between training set and testing set
+					training_neg_amount += 1 
 					f = open("./training_set/training_negative.txt", "a", encoding='utf-8')
 				else:
 					f = open("./testing_set/testing_negative.txt", "a", encoding='utf-8')
@@ -90,8 +92,8 @@ for episode in csv_rows:
 				f.close()
 				neg_training =  not neg_training
 			else: #positive review
-				if(pos_training):
-					training_pos_number += 1
+				if(pos_training): #alternates between training set and testing set
+					training_pos_amount += 1
 					f = open("./training_set/training_positive.txt", "a", encoding='utf-8')
 				else:
 					f = open("./testing_set/testing_positive.txt", "a", encoding='utf-8')
@@ -101,8 +103,8 @@ for episode in csv_rows:
 				f.close()
 				pos_training = not pos_training
 
-print("Amount of positive reviews in the training set is: ", training_pos_number)
-print("Amount of negative reviews in the training set is: ", training_neg_number)
+print("Amount of positive reviews in the training set is: ", training_pos_amount)
+print("Amount of negative reviews in the training set is: ", training_neg_amount)
 
 
 #################################################################################################
