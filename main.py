@@ -55,9 +55,18 @@ try:
     os.mkdir(training_path)
     os.mkdir(testing_path)
 except OSError:
-    print ("Creation of the directory failed") #will fail if directory already exists
+    print ("Creation of the directory failed. Directory might already exist.")
 else:
     print ("Successfully created the directory")
+
+training_files = os.listdir(training_path)
+for item in training_files:
+    if item.endswith(".txt"):
+        os.remove(os.path.join(training_path, item))
+testing_files = os.listdir(testing_path)
+for item in testing_files:
+    if item.endswith(".txt"):
+        os.remove(os.path.join(testing_path, item))
 
 pos_training = True
 neg_training = True
@@ -67,7 +76,6 @@ for episode in csv_rows:
 	response = get(episode[2] + '?spoiler=hide&sort=helpfulnessScore&dir=desc&ratingFilter=0')  #get the episode review link and filter out the spoilers
 	html_soup = BeautifulSoup(response.text, 'html.parser') #creates beautifulsoup object from URL
 	review_container = html_soup.find_all('div', class_ = "review-container") #contains all reviews on the first page of the episode
-
 	for review in review_container:
 		if(review.span.span is not None): #only taking reviews that have a number rating
 			if(int(review.span.span.text) < 8): #negative review
