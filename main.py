@@ -1,115 +1,81 @@
-from requests import get
-from bs4 import BeautifulSoup
-import re
-import csv
-import os
+import math
+import string
 
-#############################################################################################
-# 1.1 CSV
+from scrapUtils import *
+from sklearn.feature_extraction.text import CountVectorizer
 
-# containers
-csv_fields = ["Episode Name", "Season", "Review Link", "Year"]
-csv_rows = []
-season_urls = ['https://www.imdb.com/title/tt1475582/episodes?season=1',
-               'https://www.imdb.com/title/tt1475582/episodes?season=2',
-               'https://www.imdb.com/title/tt1475582/episodes?season=3',
-               'https://www.imdb.com/title/tt1475582/episodes?season=4']
-
-# extract information to write to the csv file
-season_counter = 0
-for url in season_urls:
-    season_counter = season_counter + 1
-
-    response = get(url)
-    html_soup = BeautifulSoup(response.text, 'html.parser')  # creates beautifulsoup object from URL
-
-    episode_container = html_soup.find_all('div', class_='list_item')  # gets all the episodes from that season
-
-    for episode in episode_container:  # gets all the fields of that episode
-        new_row = []
-        name = episode.strong.a.text
-        new_row.append(name)
-        new_row.append(season_counter)
-        link = "https://www.imdb.com" + episode.strong.a.get('href') + "reviews"
-        new_row.append(link)
-        date = episode.find('div', class_="airdate").text
-        year = re.search(r"(\d{4})", date).group(1)  # extract just the year
-        new_row.append(year)
-        csv_rows.append(new_row)
-
-# writing to csv file 
-csv_fileName = "data.csv"
-with open(csv_fileName, 'w') as csvfile:
-    csv_writer = csv.writer(csvfile)  # creating a csv writer object
-    csv_writer.writerow(csv_fields)
-    csv_writer.writerows(csv_rows)
-
-###########################################################################################
+#################################################################################################
 # 1.1 BUILDING A TRAINING SET AND TESTING SET
-# makes:
-# a training set with positive and negative reviews
-# a testing set with positive and negative reviews
-# not yet tokenized
-
-# creates directories
-training_path = "./training_set"
-testing_path = "./testing_set"
-try:
-    os.mkdir(training_path)
-    os.mkdir(testing_path)
-except OSError:
-    print("Creation of the directory failed. Directory might already exist.")
-else:
-    print("Successfully created the directory")
-
-# removes existing files
-training_files = os.listdir(training_path)
-for item in training_files:
-    if item.endswith(".txt"):
-        os.remove(os.path.join(training_path, item))
-testing_files = os.listdir(testing_path)
-for item in testing_files:
-    if item.endswith(".txt"):
-        os.remove(os.path.join(testing_path, item))
-
-pos_training = True
-neg_training = True
-training_pos_amount = 0
-training_neg_amount = 0
-for episode in csv_rows:
-    response = get(episode[
-                       2] + '?spoiler=hide&sort=helpfulnessScore&dir=desc&ratingFilter=0')  # get the episode review link and filter out the spoilers
-    html_soup = BeautifulSoup(response.text, 'html.parser')  # creates beautifulsoup object from URL
-    review_container = html_soup.find_all('div',
-                                          class_="review-container")  # contains all reviews on the first page of the episode
-    for review in review_container:
-        if review.span.span is not None:  # only taking reviews that have a number rating
-            if int(review.span.span.text) < 8:  # negative review
-                if neg_training:  # alternates between training set and testing set
-                    training_neg_amount += 1
-                    f = open("./training_set/training_negative.txt", "a", encoding='utf-8')
-                else:
-                    f = open("./testing_set/testing_negative.txt", "a", encoding='utf-8')
-                    f.write(review.a.text)  # review title
-                f.write(review.find('div', class_="text show-more__control").text + "\n")  # review text
-                f.write('/\n')
-                f.close()
-                neg_training = not neg_training
-            else:  # positive review
-                if pos_training:  # alternates between training set and testing set
-                    training_pos_amount += 1
-                    f = open("./training_set/training_positive.txt", "a", encoding='utf-8')
-                else:
-                    f = open("./testing_set/testing_positive.txt", "a", encoding='utf-8')
-                    f.write(review.a.text)  # review title
-                f.write(review.find('div', class_="text show-more__control").text + "\n")
-                f.write('/\n')
-                f.close()
-                pos_training = not pos_training
-
-print("Amount of positive reviews in the training set is: ", training_pos_amount)
-print("Amount of negative reviews in the training set is: ", training_neg_amount)
+# createDataSets()
 
 #################################################################################################
 # 1.2 Extract the data and build the model
 # tokenize the training set, cleanup and calculate probabilities
+
+training_pos_path = './training_set/training_positive.txt'
+training_neg_path = './training_set/training_negative.txt'
+testing_pos_path = './testing_set/testing_positive.txt'
+testing_neg_path = './testing_set/testing_negative.txt'
+
+# smoothing value
+SMOOTHING_VAL = 1
+
+
+# Converting a txt file of reviews in to a list of strings in memory
+def getReviewsFromFile(path):
+    file = open(path, 'r')
+    lines = []
+    while True:
+        # Get next line from file
+        line = file.readline()
+        if line != '/\n':
+            lines.append(line.rstrip())
+        if not line:  # if line is empty end of file is reached
+            break
+    file.close()
+    return lines
+
+
+# Tokenizing a string, first strip all the punctuation and then return a list of words
+def tokenize(txt):
+    return txt.translate(str.maketrans('', '', string.punctuation)).split()
+
+
+# Return a list of each word's probability of appearing
+def calculateProbabilityList(count_list):
+    total_word_count = sum(count_list)
+    prob_list = []
+    for count in count_list:
+        # Calculating the probability of each word showing up in the vocabulary
+        # Each probability is smoothed with a a global variable SMOOTHING_VAL
+        prob = (count + SMOOTHING_VAL) / total_word_count
+        prob_list.append(prob)
+    return prob_list
+
+
+# Process list of reviews and return a list of each word's frequency and probability
+def getWordInfo(review_list):
+    # Custom tokenizer overrides the default which ignore 1 letter word
+    vec = CountVectorizer(tokenizer=lambda txt: tokenize(txt))
+    X = vec.fit_transform(review_list)
+    word_list = vec.get_feature_names()
+    count_list = X.toarray().sum(axis=0)
+    prob_list = calculateProbabilityList(count_list)
+    return list(zip(word_list, count_list, prob_list))
+
+
+if os.path.exists(training_pos_path) and os.path.exists(training_neg_path):  # - Check if training data exists
+    # list of reviews
+    pos_reviews = getReviewsFromFile(training_pos_path)
+    neg_reviews = getReviewsFromFile(training_neg_path)
+    # reviews count
+    pos_reviews_count = len(pos_reviews)
+    neg_reviews_count = len(neg_reviews)
+    # word frequency info
+    pos_freq = getWordInfo(pos_reviews)
+    neg_freq = getWordInfo(neg_reviews)
+    # TODO: Combine the 2 infos into one list and write to file
+
+# Start Testing
+if os.path.exists(testing_pos_path) and os.path.exists(testing_neg_path):  # - Check if testing data exists
+    pass
