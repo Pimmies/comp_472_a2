@@ -107,6 +107,5 @@ def createDataSets():
                     f.write('/\n')
                     f.close()
                     pos_training = not pos_training
-
     print("Amount of positive reviews in the training set is: ", training_pos_amount)
     print("Amount of negative reviews in the training set is: ", training_neg_amount)
