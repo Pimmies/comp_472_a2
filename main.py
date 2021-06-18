@@ -1,8 +1,7 @@
-import math
 import string
 
+from Model import Model
 from scrapUtils import *
-from sklearn.feature_extraction.text import CountVectorizer
 
 #################################################################################################
 # 1.1 BUILDING A TRAINING SET AND TESTING SET
@@ -21,62 +20,37 @@ testing_neg_path = './testing_set/testing_negative.txt'
 SMOOTHING_VAL = 1
 
 
-# Converting a txt file of reviews in to a list of strings in memory
-def getReviewsFromFile(path):
+# Converting a txt file of testing reviews in to a list of strings in memory
+def readTestingReviewsFromFile(path):
     file = open(path, 'r')
-    lines = []
-    count = 0;
+    reviews = []
+    count = 0
+    isTitleFlag = True
+    title = ""
+    content = ""
     while True:
         # Get next line from file
         line = file.readline()
-        if line != '/\n':
-            lines.append(line.rstrip())
+        if line == '/\n':  # If the line is a /, it means a review is finished
+            count = count + 1
+            reviews.append((title, content))
+            isTitleFlag = True  # The next line will be a review title
+            content = ""
         else:
-            count = count + 1 # If the line is a /, it means a review is finished
+            if isTitleFlag:
+                title = line
+                isTitleFlag = False
+            else:
+                content = content + " " + line
         if not line:  # if line is empty end of file is reached
             break
     file.close()
-    return lines, count
+    return reviews, count
 
-
-# Tokenizing a string, first strip all the punctuation and then return a list of words
-def tokenize(txt):
-    return txt.translate(str.maketrans('', '', string.punctuation)).split()
-
-
-# Return a list of each word's probability of appearing
-def calculateProbabilityList(count_list):
-    total_word_count = sum(count_list)
-    prob_list = []
-    for count in count_list:
-        # Calculating the probability of each word showing up in the vocabulary
-        # Each probability is smoothed with a a global variable SMOOTHING_VAL
-        prob = (count + SMOOTHING_VAL) / total_word_count
-        prob_list.append(prob)
-    return prob_list
-
-
-# Process list of reviews and return a list of each word's frequency and probability
-def getWordInfo(review_list):
-    # Custom tokenizer overrides the default which ignore 1 letter word
-    vec = CountVectorizer(tokenizer=lambda txt: tokenize(txt))
-    X = vec.fit_transform(review_list)
-    word_list = vec.get_feature_names()
-    count_list = X.toarray().sum(axis=0)
-    prob_list = calculateProbabilityList(count_list)
-    return list(zip(word_list, count_list, prob_list))
-
-
-if os.path.exists(training_pos_path) and os.path.exists(training_neg_path):  # - Check if training data exists
-    # list of reviews
-    pos_reviews, pos_reviews_count = getReviewsFromFile(training_pos_path)
-    neg_reviews, neg_reviews_count = getReviewsFromFile(training_neg_path)
-    # word frequency info
-    pos_freq = getWordInfo(pos_reviews)
-    neg_freq = getWordInfo(neg_reviews)
-    # TODO: Combine the 2 infos into one list and write to file
-
+# Training
+basic_model = Model(training_pos_path, training_neg_path, 1)
 
 # Start Testing
 if os.path.exists(testing_pos_path) and os.path.exists(testing_neg_path):  # - Check if testing data exists
-    pass
+    pos_reviews, pos_reviews_count = readTestingReviewsFromFile(testing_pos_path)
+    print(pos_reviews)
