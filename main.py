@@ -69,11 +69,8 @@ def getWordInfo(review_list):
 
 if os.path.exists(training_pos_path) and os.path.exists(training_neg_path):  # - Check if training data exists
     # list of reviews
-    pos_reviews = getReviewsFromFile(training_pos_path)[0]
-    neg_reviews = getReviewsFromFile(training_neg_path)[0]
-    # reviews count
-    pos_reviews_count = getReviewsFromFile(training_pos_path)[1]
-    neg_reviews_count = getReviewsFromFile(training_neg_path)[1]
+    pos_reviews, pos_reviews_count = getReviewsFromFile(training_pos_path)
+    neg_reviews, neg_reviews_count = getReviewsFromFile(training_neg_path)
     # word frequency info
     pos_freq = getWordInfo(pos_reviews)
     neg_freq = getWordInfo(neg_reviews)
