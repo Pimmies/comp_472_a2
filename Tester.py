@@ -63,6 +63,7 @@ class Tester:
         result_list = []
         success = 0
         failure = 0
+        # Predict positive reviews first
         for review in self.pos_reviews:
             word_list = self.getWordsInReview(review[1]) # build word list based on review text (not title)
             score_pos, score_neg = self.predictScores(word_list)
