@@ -23,10 +23,5 @@ SMOOTHING_VAL = 1
 # Training
 basic_model = Model(training_pos_path, training_neg_path, SMOOTHING_VAL)
 
-#Testing
+# Testing
 tester = Tester(testing_pos_path, testing_neg_path, basic_model)
-
-# Start Testing
-# if os.path.exists(testing_pos_path) and os.path.exists(testing_neg_path):  # - Check if testing data exists
-#     pos_reviews, pos_reviews_count = readTestingReviewsFromFile(testing_pos_path)
-#     print(pos_reviews)

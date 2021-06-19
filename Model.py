@@ -1,5 +1,7 @@
 import os
 import string
+import time
+
 from sklearn.feature_extraction.text import CountVectorizer
 import math
 import re
@@ -39,9 +41,20 @@ class Model:
             self.pos_reviews, self.pos_reviews_count = readTrainingReviewsFromFile(training_pos_path)
             self.neg_reviews, self.neg_reviews_count = readTrainingReviewsFromFile(training_neg_path)
             # word frequency and conditional probability info
+
+            pre_training_time = time.time()
+
             self.pos_info = self.getWordInfo(self.pos_reviews)
             self.neg_info = self.getWordInfo(self.neg_reviews)
+
+            post_training_time = time.time()
+            print("Training Time elapsed:", post_training_time - pre_training_time)
+
             self.allWordInfo = self.combinePosNegInfo()
+
+            post_combining_time = time.time()
+            print("Combining Time elapsed:", post_combining_time - post_training_time)
+
             # write to file
             self.writeToModelFile("model")
         else:

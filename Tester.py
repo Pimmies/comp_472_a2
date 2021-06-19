@@ -1,3 +1,5 @@
+import time
+
 from sklearn.feature_extraction.text import CountVectorizer
 import string
 import re
@@ -45,11 +47,17 @@ class Tester:
         self.pos_reviews = readTestingReviewsFromFile(testing_pos_path)
         self.neg_reviews = readTestingReviewsFromFile(testing_neg_path)
         self.model = model
+
+        pre_testing_time = time.time()
         self.results = self.runTest()
+        post_testing_time = time.time()
+        print("Testing Time elapsed:", post_testing_time - pre_testing_time)
+
         self.writeTestResultsToFile("result")
 
     # Returns list of tokenized words
-    def getWordsInReview(self, review):
+    @staticmethod
+    def getWordsInReview(review):
         # Custom tokenizer overrides the default which ignore 1 letter word
         vec = CountVectorizer(tokenizer=lambda txt: tokenize(txt))
         l = []
@@ -98,6 +106,7 @@ class Tester:
             for item in self.model.allWordInfo: # Look first if the word is already in the model
                 if findWholeWord(word)(item[0]):
                     index = self.model.allWordInfo.index(item)
+                    break
             if index is not None:
                 positive_score += self.model.allWordInfo[index][2]
                 negative_score += self.model.allWordInfo[index][4]
