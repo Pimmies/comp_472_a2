@@ -107,9 +107,12 @@ class Model:
             index = None
             for word in combine:
                 # Make sure the word isn't already in the list
-                if findWholeWord(item[0])(word[0]):
+                if item[0] == word[0]:
                     index = combine.index(word)
                     break
+                # if findWholeWord(item[0])(word[0]):
+                #     index = combine.index(word)
+                #     break
             if index is not None: # if word is in the list
                 # Append to the word the negative freq and prob
                 combine[index].append(item[1])

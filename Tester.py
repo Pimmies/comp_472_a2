@@ -104,9 +104,12 @@ class Tester:
         for word in word_list:
             index = None
             for item in self.model.allWordInfo: # Look first if the word is already in the model
-                if findWholeWord(word)(item[0]):
+                if word == item[0]:
                     index = self.model.allWordInfo.index(item)
                     break
+                # if findWholeWord(word)(item[0]):
+                #     index = self.model.allWordInfo.index(item)
+                #     break
             if index is not None:
                 positive_score += self.model.allWordInfo[index][2]
                 negative_score += self.model.allWordInfo[index][4]
