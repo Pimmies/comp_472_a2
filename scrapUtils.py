@@ -8,15 +8,16 @@ import os
 def createDataSets():
     #############################################################################################
     # 1.1 CSV
-    # containers
+    # cvs containers
     csv_fields = ["Episode Name", "Season", "Review Link", "Year"]
     csv_rows = []
+    
     season_urls = ['https://www.imdb.com/title/tt1475582/episodes?season=1',
                    'https://www.imdb.com/title/tt1475582/episodes?season=2',
                    'https://www.imdb.com/title/tt1475582/episodes?season=3',
                    'https://www.imdb.com/title/tt1475582/episodes?season=4']
 
-    # extract information to write to the csv file
+    # Extract information from URLs
     season_counter = 0
     for url in season_urls:
         season_counter = season_counter + 1
@@ -38,7 +39,7 @@ def createDataSets():
             new_row.append(year)
             csv_rows.append(new_row)
 
-    # writing to csv file
+    # Write to csv file
     csv_fileName = "data.csv"
     with open(csv_fileName, 'w') as csvfile:
         csv_writer = csv.writer(csvfile)  # creating a csv writer object
@@ -73,10 +74,9 @@ def createDataSets():
         if item.endswith(".txt"):
             os.remove(os.path.join(testing_path, item))
 
-    pos_training = True
-    neg_training = True
-    training_pos_amount = 0
-    training_neg_amount = 0
+    # Get reviews of each episode and write to files
+    pos_training_flag = True
+    neg_training_flag = True
     for episode in csv_rows:
         response = get(episode[
                            2] + '?spoiler=hide&sort=helpfulnessScore&dir=desc&ratingFilter=0')  # get the episode review link and filter out the spoilers
@@ -86,8 +86,7 @@ def createDataSets():
         for review in review_container:
             if review.span.span is not None:  # only taking reviews that have a number rating
                 if int(review.span.span.text) < 8:  # negative review
-                    if neg_training:  # alternates between training set and testing set
-                        training_neg_amount += 1
+                    if neg_training_flag:  # alternates between training set and testing set
                         f = open("./training_set/training_negative.txt", "a", encoding='utf-8')
                     else:
                         f = open("./testing_set/testing_negative.txt", "a", encoding='utf-8')
@@ -95,10 +94,9 @@ def createDataSets():
                     f.write(review.find('div', class_="text show-more__control").text + "\n")  # review text
                     f.write('/\n')
                     f.close()
-                    neg_training = not neg_training
+                    neg_training_flag = not neg_training_flag
                 else:  # positive review
-                    if pos_training:  # alternates between training set and testing set
-                        training_pos_amount += 1
+                    if pos_training_flag:  # alternates between training set and testing set
                         f = open("./training_set/training_positive.txt", "a", encoding='utf-8')
                     else:
                         f = open("./testing_set/testing_positive.txt", "a", encoding='utf-8')
@@ -106,6 +104,4 @@ def createDataSets():
                     f.write(review.find('div', class_="text show-more__control").text + "\n")
                     f.write('/\n')
                     f.close()
-                    pos_training = not pos_training
-    print("Amount of positive reviews in the training set is: ", training_pos_amount)
-    print("Amount of negative reviews in the training set is: ", training_neg_amount)
+                    pos_training_flag = not pos_training_flag

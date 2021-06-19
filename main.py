@@ -5,7 +5,7 @@ from scrapUtils import *
 
 #################################################################################################
 # 1.1 BUILDING A TRAINING SET AND TESTING SET
-# createDataSets()
+#createDataSets()
 
 #################################################################################################
 # 1.2 Extract the data and build the model
@@ -51,6 +51,6 @@ def readTestingReviewsFromFile(path):
 basic_model = Model(training_pos_path, training_neg_path, 1)
 
 # Start Testing
-if os.path.exists(testing_pos_path) and os.path.exists(testing_neg_path):  # - Check if testing data exists
-    pos_reviews, pos_reviews_count = readTestingReviewsFromFile(testing_pos_path)
-    print(pos_reviews)
+# if os.path.exists(testing_pos_path) and os.path.exists(testing_neg_path):  # - Check if testing data exists
+#     pos_reviews, pos_reviews_count = readTestingReviewsFromFile(testing_pos_path)
+#     print(pos_reviews)
