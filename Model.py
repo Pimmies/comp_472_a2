@@ -22,10 +22,9 @@ def readTrainingReviewsFromFile(path):
     file.close()
     return lines, count
 
-
 # Tokenizing a string, first strip all the punctuation and then return a list of words
 def tokenize(txt):
-    return txt.translate(str.maketrans('', '', string.punctuation)).split()
+    return txt.translate(str.maketrans(string.punctuation, ' '*len(string.punctuation))).split()
 
 # Finds a whole word rather than a substring
 def findWholeWord(w):
@@ -41,11 +40,8 @@ class Model:
             self.neg_reviews, self.neg_reviews_count = readTrainingReviewsFromFile(training_neg_path)
             # word frequency and conditional probability info
             self.pos_info = self.getWordInfo(self.pos_reviews)
-            # DEBUG: print(self.pos_info)
             self.neg_info = self.getWordInfo(self.neg_reviews)
-            # print(self.neg_info)
             self.allWordInfo = self.combinePosNegInfo()
-            # DEBUG: print(self.allWordInfo)
             # write to file
             self.writeToModelFile("model")
         else:
@@ -72,31 +68,47 @@ class Model:
             prob_list.append(prob)
         return prob_list
 
+    # Returns the smoothed probability of a non-appearing new word
+    # review_type: "positive" or "negative"
+    def newWordProbability(self, review_type):
+        if review_type in "positive":
+            info = self.pos_info
+        else:
+            info = self.neg_info
+        unique_word_count = len(info)
+        total_word_count = 0
+        for item in info:
+            total_word_count += item[1]
+        return math.log10(self.smooth_val / (total_word_count + (self.smooth_val * unique_word_count)))
+
     # Returns a list combination of positive and negative info [[word, frequency positive, prob positive, frequency negative, prob negative], ...]
     def combinePosNegInfo(self):
         combine = []
+        new_word_prob_pos = self.newWordProbability("positive")
+        new_word_prob_neg = self.newWordProbability("negative")
         # Add all the positive words and info to list
         for item in self.pos_info:
             combine.append(item)
         # Add all the negative words and info to list
         for item in self.neg_info:
             index = None
-            # Make sure the word isn't already in the list
             for word in combine:
+                # Make sure the word isn't already in the list
                 if findWholeWord(item[0])(word[0]):
                     index = combine.index(word)
+                    break
             if index is not None: # if word is in the list
                 # Append to the word the negative freq and prob
                 combine[index].append(item[1])
                 combine[index].append(item[2])
             else:
-                newItem = [item[0], 0.0, 0.0, item[1], item[2]]
+                newItem = [item[0], 0.0, new_word_prob_pos, item[1], item[2]]
                 combine.append(newItem)
         # Looks for words that have no value for negative freq and prob
         for item in combine:
             if len(item) == 3:
-                item.append(0.0)
-                item.append(0.0)
+                item.append("0.0")
+                item.append(new_word_prob_neg)
         return combine
 
     # Writes words, frequency and probability to model file
