@@ -28,9 +28,6 @@ def readTrainingReviewsFromFile(path):
 def tokenize(txt):
     return txt.translate(str.maketrans(string.punctuation, ' '*len(string.punctuation))).split()
 
-# Finds a whole word rather than a substring
-def findWholeWord(w):
-    return re.compile(r'\b({0})\b'.format(w), flags=re.IGNORECASE).search
 
 class Model:
     """This class is a simple Naive Bayes Model"""
@@ -110,9 +107,6 @@ class Model:
                 if item[0] == word[0]:
                     index = combine.index(word)
                     break
-                # if findWholeWord(item[0])(word[0]):
-                #     index = combine.index(word)
-                #     break
             if index is not None: # if word is in the list
                 # Append to the word the negative freq and prob
                 combine[index].append(item[1])

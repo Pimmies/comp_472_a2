@@ -36,9 +36,6 @@ def readTestingReviewsFromFile(path):
 def tokenize(txt):
     return txt.translate(str.maketrans(string.punctuation, ' '*len(string.punctuation))).split()
 
-# Finds a whole word rather than a substring
-def findWholeWord(w):
-    return re.compile(r'\b({0})\b'.format(w), flags=re.IGNORECASE).search
 
 class Tester:
     """This class tests reviews"""
