@@ -41,13 +41,14 @@ class Model:
 
             pre_training_time = time.time()
 
-            self.pos_info = self.getWordInfo(self.pos_reviews)
-            self.neg_info = self.getWordInfo(self.neg_reviews)
+            self.pos_info = self.initiateWordInfoWithDataset(self.pos_reviews)
+            self.neg_info = self.initiateWordInfoWithDataset(self.neg_reviews)
 
             post_training_time = time.time()
             print("Training Time elapsed:", post_training_time - pre_training_time)
 
             self.allWordInfo = self.combinePosNegInfo()
+            self.original_word_set = self.getWordSet()  # Save the original vocabulary set as a class attribute
 
             post_combining_time = time.time()
             print("Combining Time elapsed:", post_combining_time - post_training_time)
@@ -58,7 +59,7 @@ class Model:
             print("Training Path doesn't exist")
 
     # Process list of reviews and return a list of each word's frequency and conditional probability
-    def getWordInfo(self, review_list):
+    def initiateWordInfoWithDataset(self, review_list):
         # Custom tokenizer overrides the default which ignore 1 letter word
         vec = CountVectorizer(tokenizer=lambda txt: tokenize(txt))
         X = vec.fit_transform(review_list)
@@ -130,3 +131,30 @@ class Model:
             f.write(str(item[1]) + ", " + str(item[2]) + ", " + str(item[3]) + ", " + str(item[4]) + "\n")
             counter += 1
         f.close()
+
+    def removeWordsByFrequency(self, arg):
+        if arg == 'freq=1':
+            # go through pos_info and neg_info, remove items where freq = 1
+            self.removeWordsOfFrequency(1)
+
+    def removeWordsOfFrequency(self, freq):
+        self.pos_info = [item for item in self.pos_info if item[1] != freq]
+        # need to update the conditional probability of each word
+        self.updateProbabilityList(self.pos_info)
+        self.neg_info = [item for item in self.neg_info if item[1] != freq]
+        self.updateProbabilityList(self.neg_info)
+        # combine results
+        self.combinePosNegInfo()
+        new_word_set = self.getWordSet()
+        print("removed words", self.original_word_set - new_word_set)
+
+    def updateProbabilityList(self, info_list):
+        count_list = [item[1] for item in info_list]
+        prob_list = self.calculateProbabilityList(count_list)
+        for i in range(len(info_list)):
+            info_list[i][2] = prob_list[i]
+
+    def getWordSet(self):
+        return set([item[0] for item in self.allWordInfo])
+
+

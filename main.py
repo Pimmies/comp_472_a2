@@ -22,6 +22,7 @@ SMOOTHING_VAL = 1
 
 # Training
 basic_model = Model(training_pos_path, training_neg_path, SMOOTHING_VAL)
+basic_model.removeWordsByFrequency('freq=1')
 
 # Testing
-tester = Tester(testing_pos_path, testing_neg_path, basic_model)
+# tester = Tester(testing_pos_path, testing_neg_path, basic_model)
