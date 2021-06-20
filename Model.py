@@ -34,26 +34,15 @@ class Model:
     """This class is a simple Naive Bayes Model"""
     def __init__(self, training_pos_path, training_neg_path, smooth_val):
         self.smooth_val = smooth_val
+        self.removed_words_list = []
         if os.path.exists(training_pos_path) and os.path.exists(training_neg_path):  # - Check if training data exists
             # list of reviews, and review count
             self.pos_reviews, self.pos_reviews_count = readTrainingReviewsFromFile(training_pos_path)
             self.neg_reviews, self.neg_reviews_count = readTrainingReviewsFromFile(training_neg_path)
             # word frequency and conditional probability info
-
-            pre_training_time = time.time()
-
             self.pos_info = self.initiateWordInfoWithDataset(self.pos_reviews)
             self.neg_info = self.initiateWordInfoWithDataset(self.neg_reviews)
-
-            post_training_time = time.time()
-            print("Training Time elapsed:", post_training_time - pre_training_time)
-
             self.allWordInfo = self.combinePosNegInfo()
-            self.original_word_set = self.getWordSet()  # Save the original vocabulary set as a class attribute
-
-            post_combining_time = time.time()
-            print("Combining Time elapsed:", post_combining_time - post_training_time)
-
             # write to file
             self.writeToModelFile("model")
         else:
@@ -134,20 +123,31 @@ class Model:
         f.close()
 
     def removeWordsByFrequency(self, arg):
-        if arg == 'freq=1':
-            # go through pos_info and neg_info, remove items where freq = 1
-            self.removeWordsOfFrequency(1)
+        if arg == '=1':
+            # go through pos_info and neg_info, adding in removed_words_list with freq = 1 words
+            self.removeWordsLessThanFrequency(1)
+        if arg == '<=10':
+            self.removeWordsLessThanFrequency(10)
+        if arg == '<=20':
+            self.removeWordsLessThanFrequency(20)
+        self.updateWordInfoWithRemovedWords()
 
-    def removeWordsOfFrequency(self, freq):
-        self.pos_info = [item for item in self.pos_info if item[1] != freq]
+    def removeWordsLessThanFrequency(self, freq):
+        for item in self.allWordInfo:
+            if float(item[1]) + float(item[3]) <= freq:
+                self.removed_words_list.append(item[0])
+        print("removed_words_list size", len(self.removed_words_list))
+
+    def updateWordInfoWithRemovedWords(self):
+        # Remove from pos_info if this item is in the removed_word_set
+        self.pos_info = [item for item in self.pos_info if item[0] not in self.removed_words_list]
         # need to update the conditional probability of each word
         self.updateProbabilityList(self.pos_info)
-        self.neg_info = [item for item in self.neg_info if item[1] != freq]
+        self.neg_info = [item for item in self.neg_info if item[0] not in self.removed_words_list]
         self.updateProbabilityList(self.neg_info)
         # combine results
-        self.combinePosNegInfo()
-        new_word_set = self.getWordSet()
-        print("removed words", self.original_word_set - new_word_set)
+        self.allWordInfo = self.combinePosNegInfo()
+        # new_word_set = self.getWordSet()
 
     def updateProbabilityList(self, info_list):
         count_list = [item[1] for item in info_list]

@@ -32,9 +32,9 @@ def readTestingReviewsFromFile(path):
     file.close()
     return reviews #, count
 
-# Tokenizing a string, first strip all the punctuation and then return a list of words
+# Tokenizing a string, change all strings to lowercase, then strip all the punctuation and then return a list of words
 def tokenize(txt):
-    return txt.translate(str.maketrans(string.punctuation, ' '*len(string.punctuation))).split()
+    return txt.lower().translate(str.maketrans(string.punctuation, ' '*len(string.punctuation))).split()
 
 
 class Tester:
@@ -44,24 +44,8 @@ class Tester:
         self.pos_reviews = readTestingReviewsFromFile(testing_pos_path)
         self.neg_reviews = readTestingReviewsFromFile(testing_neg_path)
         self.model = model
-
-        pre_testing_time = time.time()
         self.results = self.runTest()
-        post_testing_time = time.time()
-        print("Testing Time elapsed:", post_testing_time - pre_testing_time)
-
         self.writeTestResultsToFile("result")
-
-    # Returns list of tokenized words
-    @staticmethod
-    def getWordsInReview(review):
-        # Custom tokenizer overrides the default which ignore 1 letter word
-        vec = CountVectorizer(tokenizer=lambda txt: tokenize(txt))
-        l = []
-        l.append(review)
-        X = vec.fit_transform(l)
-        word_list = vec.get_feature_names()
-        return word_list
 
     # Builds a result list [[review title, positive score, negative score, our result, correct result, right or wrong], [...]]
     def runTest(self):
@@ -70,7 +54,7 @@ class Tester:
         failure = 0
         # Predict positive reviews first
         for review in self.pos_reviews:
-            word_list = self.getWordsInReview(review[1]) # build word list based on review text (not title)
+            word_list = tokenize(review[1])  # build word list based on review text (not title)
             score_pos, score_neg = self.predictScores(word_list)
             if(score_pos > score_neg):
                 result_list.append([review[0], score_pos, score_neg, "Positive", "Positive", "Right"])
@@ -80,7 +64,7 @@ class Tester:
                 failure += 1
         # Predict negative reviews
         for review in self.neg_reviews:
-            word_list = self.getWordsInReview(review[1]) # build word list based on review text (not title)
+            word_list = tokenize(review[1])  # build word list based on review text (not title)
             score_pos, score_neg = self.predictScores(word_list)
             if(score_neg > score_pos):
                 result_list.append([review[0], score_pos, score_neg, "Negative", "Negative", "Right"])
@@ -90,6 +74,7 @@ class Tester:
                 failure += 1
         print("number of successes: ", success)
         print("number of failures: ", failure)
+        print()
         return result_list
 
     # Returns positive and negative scores for a review's list of words
