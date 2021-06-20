@@ -5,6 +5,7 @@ import time
 from sklearn.feature_extraction.text import CountVectorizer
 import math
 import re
+import copy
 
 
 # Converting a txt file of training reviews in to a list of strings in memory
@@ -101,7 +102,7 @@ class Model:
         new_word_prob_neg = self.newWordProbability("negative")
         # Add all the positive words and info to list
         for item in self.pos_info:
-            combine.append(item)
+            combine.append(copy.deepcopy(item))
         # Add all the negative words and info to list
         for item in self.neg_info:
             index = None
@@ -110,13 +111,10 @@ class Model:
                 if item[0] == word[0]:
                     index = combine.index(word)
                     break
-                # if findWholeWord(item[0])(word[0]):
-                #     index = combine.index(word)
-                #     break
             if index is not None: # if word is in the list
                 # Append to the word the negative freq and prob
-                combine[index].append(item[1])
-                combine[index].append(item[2])
+                combine[index].append(copy.deepcopy(item[1]))
+                combine[index].append(copy.deepcopy(item[2]))
             else:
                 newItem = [item[0], 0.0, new_word_prob_pos, item[1], item[2]]
                 combine.append(newItem)
