@@ -24,15 +24,11 @@ SMOOTHING_VAL = 1
 basic_model = Model(training_pos_path, training_neg_path, SMOOTHING_VAL)
 tester = Tester(testing_pos_path, testing_neg_path, basic_model)
 
-basic_model.removeWordsByFrequency('=1')
-tester = Tester(testing_pos_path, testing_neg_path, basic_model)
+frequency_removal_args = ['=1', '<=10', '<=20', 'top5%', 'top10%', 'top20%']
 
-basic_model.removeWordsByFrequency('<=10')
-tester = Tester(testing_pos_path, testing_neg_path, basic_model)
-
-basic_model.removeWordsByFrequency('<=20')
-tester = Tester(testing_pos_path, testing_neg_path, basic_model)
-
+for arg in frequency_removal_args:
+    basic_model.removeWordsByFrequency(arg)
+    tester = Tester(testing_pos_path, testing_neg_path, basic_model)
 
 # Testing
 # tester = Tester(testing_pos_path, testing_neg_path, basic_model)

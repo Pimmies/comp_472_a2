@@ -125,19 +125,49 @@ class Model:
     def removeWordsByFrequency(self, arg):
         if arg == '=1':
             # go through pos_info and neg_info, adding in removed_words_list with freq = 1 words
-            self.removeWordsLessThanFrequency(1)
+            self.addWordsLessThanFrequencyToRemoveList(1)
         if arg == '<=10':
-            self.removeWordsLessThanFrequency(10)
+            self.addWordsLessThanFrequencyToRemoveList(10)
         if arg == '<=20':
-            self.removeWordsLessThanFrequency(20)
+            self.addWordsLessThanFrequencyToRemoveList(20)
+        if arg == 'top5%':
+            self.addWordsTopPercentageToRemoveList(0.05)
+        if arg == 'top10%':
+            self.addWordsTopPercentageToRemoveList(0.1)
+        if arg == 'top20%':
+            self.addWordsTopPercentageToRemoveList(0.2)
         self.updateWordInfoWithRemovedWords()
 
-    def removeWordsLessThanFrequency(self, freq):
+    # Add all the words to removed_word_list if it's combined frequency is less than freq parameter
+    def addWordsLessThanFrequencyToRemoveList(self, freq):
         for item in self.allWordInfo:
-            if float(item[1]) + float(item[3]) <= freq:
+            if self.__getCombinedFrequencyOfWord(item) <= freq:
                 self.removed_words_list.append(item[0])
-        print("removed_words_list size", len(self.removed_words_list))
 
+    # Add all the words to removed_word_list if it's combined frequency is greater than freq parameter
+    def addWordsGreaterThanFrequencyToRemoveList(self, freq):
+        for item in self.allWordInfo:
+            if self.__getCombinedFrequencyOfWord(item) >= freq:
+                self.removed_words_list.append(item[0])
+
+    # Add all the words to removed_word_list if it's combined frequency is greater than percentage param
+    def addWordsTopPercentageToRemoveList(self, percentage):
+        cut_off_freq = self.__getCutOffFrequencyWithTopPercentage(percentage)
+        self.addWordsGreaterThanFrequencyToRemoveList(cut_off_freq)
+        pass
+
+    # Helper for addWordsTopPercentageToRemoveList()
+    def __getCutOffFrequencyWithTopPercentage(self, percentage):
+        # sort allWordInfo according to combined frequency of each word, descending order (most frequent in the front)
+        self.allWordInfo.sort(key=lambda item: self.__getCombinedFrequencyOfWord(item), reverse=True)
+        cut_off_index = int(percentage * len(self.allWordInfo))
+        if cut_off_index <= len(self.allWordInfo)-1:  # Make sure no array out of bound
+            return self.__getCombinedFrequencyOfWord(self.allWordInfo[cut_off_index])
+        else:
+            return float("inf")
+        pass
+
+    # Updating each word's cond probability and remove words with removed_words_list
     def updateWordInfoWithRemovedWords(self):
         # Remove from pos_info if this item is in the removed_word_set
         self.pos_info = [item for item in self.pos_info if item[0] not in self.removed_words_list]
@@ -155,7 +185,10 @@ class Model:
         for i in range(len(info_list)):
             info_list[i][2] = prob_list[i]
 
-    def getWordSet(self):
-        return set([item[0] for item in self.allWordInfo])
+    # Adding the positive and negative frequency together for an entry of allWordInfo
+    @staticmethod
+    def __getCombinedFrequencyOfWord(item):
+        return float(item[1]) + float(item[3])
+
 
 
