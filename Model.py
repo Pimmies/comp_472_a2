@@ -122,6 +122,13 @@ class Model:
             counter += 1
         f.close()
 
+    # Writes words, frequency and probability to model file
+    def writeToRemoveFile(self, fileName):
+        f = open(fileName + ".txt", "w", encoding='utf-8')
+        for item in self.removed_words_list:
+            f.write(str(item) + "\n")
+        f.close()
+
     def removeWordsByFrequency(self, arg):
         if arg == '=1':
             # go through pos_info and neg_info, adding in removed_words_list with freq = 1 words
@@ -189,6 +196,10 @@ class Model:
     @staticmethod
     def __getCombinedFrequencyOfWord(item):
         return float(item[1]) + float(item[3])
+
+    # Return total vocabulary size
+    def getVocabularySize(self):
+        return len(self.allWordInfo)
 
 
 

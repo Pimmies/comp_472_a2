@@ -9,7 +9,6 @@ import math
 def readTestingReviewsFromFile(path):
     file = open(path, 'r')
     reviews = []
-    count = 0
     isTitleFlag = True
     title = ""
     content = ""
@@ -17,7 +16,6 @@ def readTestingReviewsFromFile(path):
         # Get next line from file
         line = file.readline()
         if line == '/\n':  # If the line is a /, it means a review is finished
-            count = count + 1
             reviews.append((title, content))
             isTitleFlag = True  # The next line will be a review title
             content = ""
@@ -30,7 +28,7 @@ def readTestingReviewsFromFile(path):
         if not line:  # if line is empty end of file is reached
             break
     file.close()
-    return reviews #, count
+    return reviews
 
 # Tokenizing a string, change all strings to lowercase, then strip all the punctuation and then return a list of words
 def tokenize(txt):
@@ -44,7 +42,13 @@ class Tester:
         self.pos_reviews = readTestingReviewsFromFile(testing_pos_path)
         self.neg_reviews = readTestingReviewsFromFile(testing_neg_path)
         self.model = model
+
+        self.true_positive_count = 0  # Correct true positive predictions count
+        self.predicted_positive_count = 0  # All positive predictions count
+        self.real_positive_count = len(self.pos_reviews)  # All positive reviews count
+
         self.results = self.runTest()
+
         self.writeTestResultsToFile("result")
 
     # Builds a result list [[review title, positive score, negative score, our result, correct result, right or wrong], [...]]
@@ -56,7 +60,9 @@ class Tester:
         for review in self.pos_reviews:
             word_list = tokenize(review[1])  # build word list based on review text (not title)
             score_pos, score_neg = self.predictScores(word_list)
-            if(score_pos > score_neg):
+            if score_pos > score_neg:
+                self.predicted_positive_count += 1
+                self.true_positive_count += 1
                 result_list.append([review[0], score_pos, score_neg, "Positive", "Positive", "Right"])
                 success += 1
             else:
@@ -66,10 +72,11 @@ class Tester:
         for review in self.neg_reviews:
             word_list = tokenize(review[1])  # build word list based on review text (not title)
             score_pos, score_neg = self.predictScores(word_list)
-            if(score_neg > score_pos):
+            if score_neg > score_pos:
                 result_list.append([review[0], score_pos, score_neg, "Negative", "Negative", "Right"])
                 success += 1
             else:
+                self.predicted_positive_count += 1
                 result_list.append([review[0], score_pos, score_neg, "Positive", "Negative", "Wrong"])
                 failure += 1
         print("number of successes: ", success)
@@ -92,10 +99,18 @@ class Tester:
             if index is not None:
                 positive_score += self.model.allWordInfo[index][2]
                 negative_score += self.model.allWordInfo[index][4]
-            else: # new word
+            else:  # new word
                 positive_score += new_word_prob_pos
                 negative_score += new_word_prob_neg
-        return (positive_score, negative_score)
+        return positive_score, negative_score
+
+    def getFMeasure(self, beta):
+        if self.real_positive_count != 0 and self.predicted_positive_count != 0:
+            precision = self.true_positive_count / self.predicted_positive_count
+            recall = self.true_positive_count / self.real_positive_count
+            return (beta*beta + 1) * precision * recall / (beta*beta * precision + recall)
+        else:
+            return 0
 
     def writeTestResultsToFile(self, fileName):
         f = open(fileName + ".txt", "w", encoding='utf-8')
