@@ -49,7 +49,8 @@ class Model:
     # Process list of reviews and return a list of each word's frequency and conditional probability
     def initiateWordInfoWithDataset(self, review_list):
         # Custom tokenizer overrides the default which ignore 1 letter word
-        vec = CountVectorizer(tokenizer=lambda txt: tokenize(txt))
+        vec = CountVectorizer(tokenizer=lambda txt: tokenize(txt), stop_words='english')
+        self.removed_words_list = list(vec.get_stop_words())
         X = vec.fit_transform(review_list)
         word_list = vec.get_feature_names()
         count_list = X.toarray().sum(axis=0)

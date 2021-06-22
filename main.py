@@ -30,6 +30,8 @@ ax2 = f2.add_subplot(111)
 
 # Training and testing original model
 model = Model(training_pos_path, training_neg_path, SMOOTHING_VAL)
+# Original stop words file
+model.writeToRemoveFile("remove")
 tester = Tester(testing_pos_path, testing_neg_path, model)
 model.writeToModelFile("model")
 tester.writeTestResultsToFile("result")
@@ -80,7 +82,7 @@ ax2.plot(smoothing_values, y)
 ax2.title.set_text('Task 2.2 - Smoothing Values')
 ax2.set_xlabel('Smoothing Values')
 ax2.set_ylabel('F Measure')
-ax2.set_ylim([0.65, 0.9])
+ax2.set_ylim([0.60, 0.9])
 
 
 plt.show()

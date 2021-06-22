@@ -30,9 +30,6 @@ def readTestingReviewsFromFile(path):
     file.close()
     return reviews
 
-# Tokenizing a string, change all strings to lowercase, then strip all the punctuation and then return a list of words
-def tokenize(txt):
-    return txt.lower().translate(str.maketrans(string.punctuation, ' '*len(string.punctuation))).split()
 
 
 class Tester:
@@ -56,7 +53,7 @@ class Tester:
         failure = 0
         # Predict positive reviews first
         for review in self.pos_reviews:
-            word_list = tokenize(review[1])  # build word list based on review text (not title)
+            word_list = self.tokenize(review[1])  # build word list based on review text (not title)
             score_pos, score_neg = self.predictScores(word_list)
             if score_pos > score_neg:
                 self.predicted_positive_count += 1
@@ -68,7 +65,7 @@ class Tester:
                 failure += 1
         # Predict negative reviews
         for review in self.neg_reviews:
-            word_list = tokenize(review[1])  # build word list based on review text (not title)
+            word_list = self.tokenize(review[1])  # build word list based on review text (not title)
             score_pos, score_neg = self.predictScores(word_list)
             if score_neg > score_pos:
                 result_list.append([review[0], score_pos, score_neg, "Negative", "Negative", "Right"])
@@ -118,3 +115,9 @@ class Tester:
             f.write(str(item[1]) + ', ' + str(item[2]) + ', ' + item[3] + ', ' + item[4] + ', ' + item[5] + '\n\n')
             counter += 1
         f.close()
+
+    # Tokenizing a string, change all strings to lowercase, then strip all the punctuation and then return a list of words
+    def tokenize(self, txt):
+        words = txt.lower().translate(str.maketrans(string.punctuation, ' ' * len(string.punctuation))).split()
+        removed_stop_words = [word for word in words if word.lower() not in self.model.removed_words_list]
+        return removed_stop_words
