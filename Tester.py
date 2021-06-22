@@ -49,8 +49,6 @@ class Tester:
 
         self.results = self.runTest()
 
-        self.writeTestResultsToFile("result")
-
     # Builds a result list [[review title, positive score, negative score, our result, correct result, right or wrong], [...]]
     def runTest(self):
         result_list = []

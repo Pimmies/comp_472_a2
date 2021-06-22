@@ -43,8 +43,6 @@ class Model:
             self.pos_info = self.initiateWordInfoWithDataset(self.pos_reviews)
             self.neg_info = self.initiateWordInfoWithDataset(self.neg_reviews)
             self.allWordInfo = self.combinePosNegInfo()
-            # write to file
-            self.writeToModelFile("model")
         else:
             print("Training Path doesn't exist")
 
@@ -122,7 +120,7 @@ class Model:
             counter += 1
         f.close()
 
-    # Writes words, frequency and probability to model file
+    # Writes removed words to file
     def writeToRemoveFile(self, fileName):
         f = open(fileName + ".txt", "w", encoding='utf-8')
         for item in self.removed_words_list:

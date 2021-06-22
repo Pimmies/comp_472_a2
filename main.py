@@ -28,9 +28,14 @@ f2 = plt.figure()
 ax1 = f1.add_subplot(111)
 ax2 = f2.add_subplot(111)
 
+# Training and testing original model
+model = Model(training_pos_path, training_neg_path, SMOOTHING_VAL)
+tester = Tester(testing_pos_path, testing_neg_path, model)
+model.writeToModelFile("model")
+tester.writeTestResultsToFile("result")
+
 # Training and Testing for Frequency Removals
 freq_model = Model(training_pos_path, training_neg_path, SMOOTHING_VAL)
-tester = Tester(testing_pos_path, testing_neg_path, freq_model)
 freq_testers = [tester]
 vocab_sizes = [freq_model.getVocabularySize()]
 
@@ -42,6 +47,8 @@ for arg in freq_args:
     freq_testers.append(tester)
     vocab_sizes.append(freq_model.getVocabularySize())
 
+freq_model.writeToModelFile("frequency_model")
+tester.writeTestResultsToFile("frequency_result")
 freq_model.writeToRemoveFile("frequency-remove")
 
 # Plotting for Frequency Removals
@@ -53,14 +60,21 @@ ax1.set_xlabel('Vocabulary Size')
 ax1.set_ylabel('F Measure')
 ax1.set_ylim([0, 1])
 
-
+# Training and Testing for smoothing values
 s_testers = []
+s_models = []
 smoothing_values = np.arange(1, 2, 0.2).tolist()
 for val in smoothing_values:
     print("Testing for model with smoothing value " + str(val) + ":")
     s_model = Model(training_pos_path, training_neg_path, val)
+    s_models.append(s_model)
     tester = Tester(testing_pos_path, testing_neg_path, s_model)
     s_testers.append(tester)
+
+s_models[3].writeToModelFile("smooth_model") #smoothing value = 1.6
+s_testers[3].writeTestResultsToFile("smooth_result")
+
+# Plotting for smoothing values
 y = np.array([tester.getFMeasure(1) for tester in s_testers])
 ax2.plot(smoothing_values, y)
 ax2.title.set_text('Task 2.2 - Smoothing Values')
@@ -70,6 +84,3 @@ ax2.set_ylim([0.65, 0.9])
 
 
 plt.show()
-
-# Testing
-# tester = Tester(testing_pos_path, testing_neg_path, basic_model)
