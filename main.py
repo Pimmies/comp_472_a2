@@ -55,7 +55,7 @@ ax1.set_ylim([0, 1])
 
 
 s_testers = []
-smoothing_values = np.linspace(0.6, 2, 8)
+smoothing_values = np.arange(1, 2, 0.2).tolist()
 for val in smoothing_values:
     print("Testing for model with smoothing value " + str(val) + ":")
     s_model = Model(training_pos_path, training_neg_path, val)
